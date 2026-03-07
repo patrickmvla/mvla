@@ -7,6 +7,7 @@ interface Stats {
   totalCommits: number;
   repos: number;
   streak: number;
+  commitsThisWeek: number;
   weeks: { count: number; date: string }[][];
 }
 
@@ -45,8 +46,9 @@ export function GitHubStats() {
     <div className="space-y-4">
       {/* Stats row */}
       <div className="flex gap-8">
-        <Stat label="contributions" value={stats.totalContributions} />
+        <Stat label="this week" value={stats.commitsThisWeek} />
         <Stat label="streak" value={`${stats.streak}d`} />
+        <Stat label="contributions" value={stats.totalContributions} />
         <Stat label="repos" value={stats.repos} />
       </div>
 

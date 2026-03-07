@@ -151,11 +151,19 @@ app.get("/stats", async (c) => {
         }))
     );
 
+    // Commits this week — sum the last (current) week's contribution days
+    const currentWeek = calendar.weeks.at(-1)?.contributionDays ?? [];
+    const commitsThisWeek = currentWeek.reduce(
+      (sum: number, d: { contributionCount: number }) => sum + d.contributionCount,
+      0
+    );
+
     return c.json({
       totalContributions: calendar.totalContributions,
       totalCommits,
       repos: user.repositories.totalCount,
       streak,
+      commitsThisWeek,
       weeks,
     });
   } catch {
