@@ -39,23 +39,60 @@ app.get("/activity", async (c) => {
       headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
     }
 
-    const res = await fetch(
-      `https://api.github.com/users/${GITHUB_USERNAME}/events?per_page=100`,
-      { headers, next: { revalidate: 60 } }
-    );
+    const repoNames = Object.keys(TRACKED_REPOS);
 
-    if (!res.ok) {
-      return c.json({ error: "github api error", status: res.status }, 502);
+    // Fetch events + repo metadata in parallel
+    const [eventsRes, ...repoResponses] = await Promise.all([
+      fetch(
+        `https://api.github.com/users/${GITHUB_USERNAME}/events?per_page=100`,
+        { headers, next: { revalidate: 60 } }
+      ),
+      ...repoNames.map((name) =>
+        fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${name}`, {
+          headers,
+          next: { revalidate: 300 },
+        })
+      ),
+    ]);
+
+    if (!eventsRes.ok) {
+      return c.json({ error: "github api error", status: eventsRes.status }, 502);
     }
 
-    const events: GitHubEvent[] = await res.json();
+    const events: GitHubEvent[] = await eventsRes.json();
+
+    // Parse repo metadata
+    const repoMeta: Record<string, { stars: number; forks: number; language: string | null; openIssues: number; createdAt: string }> = {};
+    for (let i = 0; i < repoNames.length; i++) {
+      if (repoResponses[i].ok) {
+        const repo = await repoResponses[i].json();
+        repoMeta[repoNames[i]] = {
+          stars: repo.stargazers_count ?? 0,
+          forks: repo.forks_count ?? 0,
+          language: repo.language ?? null,
+          openIssues: repo.open_issues_count ?? 0,
+          createdAt: repo.created_at ?? null,
+        };
+      }
+    }
 
     const pushEvents = events.filter((e) => e.type === "PushEvent");
 
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
     const projects = Object.entries(TRACKED_REPOS).map(([name, meta]) => {
-      const lastPush = pushEvents.find(
-        (e) => e.repo.name === `${GITHUB_USERNAME}/${name}`
+      const repoFullName = `${GITHUB_USERNAME}/${name}`;
+      const repoPushEvents = pushEvents.filter(
+        (e) => e.repo.name === repoFullName
       );
+      const lastPush = repoPushEvents[0];
+
+      const commitsThisWeek = repoPushEvents
+        .filter((e) => new Date(e.created_at) >= weekAgo)
+        .reduce((sum, e) => sum + (e.payload.commits?.length ?? 0), 0);
+
+      const rm = repoMeta[name];
 
       return {
         name,
@@ -64,6 +101,12 @@ app.get("/activity", async (c) => {
         status: meta.status,
         lastPush: lastPush?.created_at ?? null,
         lastCommit: lastPush?.payload.commits?.at(-1)?.message ?? null,
+        commitsThisWeek,
+        stars: rm?.stars ?? 0,
+        forks: rm?.forks ?? 0,
+        language: rm?.language ?? null,
+        openIssues: rm?.openIssues ?? 0,
+        createdAt: rm?.createdAt ?? null,
       };
     });
 

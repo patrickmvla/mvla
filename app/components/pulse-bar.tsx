@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { ArrowUpRight } from "lucide-react";
 
 interface Project {
   name: string;
   description: string;
-  href: string;
   status: "active" | "shipped";
   lastPush: string | null;
-  lastCommit: string | null;
+  commitsThisWeek: number;
 }
 
 function timeAgo(date: string): string {
@@ -39,7 +36,7 @@ export function PulseBar() {
         const data = await res.json();
         setProjects(data.projects);
       } catch {
-        // silent fail — static fallback stays
+        // silent fail
       }
     }
 
@@ -50,9 +47,9 @@ export function PulseBar() {
 
   if (!projects) {
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-10 animate-pulse bg-muted/50" />
+          <div key={i} className="h-7 animate-pulse bg-muted/50" />
         ))}
       </div>
     );
@@ -61,49 +58,33 @@ export function PulseBar() {
   return (
     <div className="flex flex-col">
       {/* Header row */}
-      <div className="mb-2 grid grid-cols-[1fr_auto_auto] gap-4 text-[10px] uppercase tracking-widest text-muted-foreground">
+      <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-widest text-muted-foreground">
         <span>project</span>
-        <span className="w-16 text-center">status</span>
-        <span className="w-20 text-right">last push</span>
+        <span>last push</span>
       </div>
 
-      {/* Project rows */}
       {projects.map((project) => (
-        <a
+        <div
           key={project.name}
-          href={project.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group grid grid-cols-[1fr_auto_auto] items-center gap-4 border-t border-border py-2.5 transition-colors hover:bg-muted/30"
+          className="flex items-center gap-3 border-t border-border/50 py-2.5 text-sm"
         >
-          <div className="min-w-0">
-            <div className="flex items-center gap-1">
-              <span className="text-sm text-primary">{project.name}</span>
-              <ArrowUpRight className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-primary">{project.name}</span>
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {project.commitsThisWeek > 0
+                  ? `${project.commitsThisWeek} commits`
+                  : "—"}
+              </span>
             </div>
-            <p className="truncate text-xs text-muted-foreground">
-              {project.lastCommit ?? project.description}
+            <p className="truncate text-[11px] text-neutral-500 dark:text-neutral-600">
+              {project.description}
             </p>
           </div>
-
-          <Badge
-            variant={project.status === "active" ? "outline" : "secondary"}
-            className="w-16 justify-center text-[10px]"
-          >
-            <span
-              className={`mr-1 inline-block size-1.5 rounded-full ${
-                project.status === "active"
-                  ? "bg-emerald-500 animate-pulse"
-                  : "bg-muted-foreground"
-              }`}
-            />
-            {project.status}
-          </Badge>
-
-          <span className="w-20 text-right text-xs text-muted-foreground">
+          <span className="shrink-0 text-xs text-muted-foreground/70">
             {project.lastPush ? timeAgo(project.lastPush) : "—"}
           </span>
-        </a>
+        </div>
       ))}
     </div>
   );
