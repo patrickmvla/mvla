@@ -1,24 +1,16 @@
 import type { Metadata } from "next";
-import { Geist_Mono, JetBrains_Mono } from "next/font/google";
-import { EasterEgg } from "./components/easter-egg";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
+import { EasterEgg } from "./components/easter-egg";
 
-const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
   title: "mvla",
-  description: "software engineer. building things that matter.",
-  openGraph: {
-    title: "mvla",
-    description: "software engineer. building things that matter.",
-    type: "website",
-  },
+  description: "software engineer.",
 };
 
 export default function RootLayout({
@@ -27,10 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("dark", "font-mono", jetbrainsMono.variable)}>
-      <body className={`${geistMono.variable} font-mono antialiased`}>
-        <div className="grain" />
-        <div className="scanlines" />
+    <html lang="en" className="dark">
+      <body className={`${jetbrainsMono.variable} font-mono antialiased bg-black text-[#a1a1a1]`}>
         <EasterEgg />
         {children}
       </body>

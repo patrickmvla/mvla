@@ -4,24 +4,15 @@ import { useEffect } from "react";
 
 export function EasterEgg() {
   useEffect(() => {
-    const styles = [
-      "color: #c9a84c",
-      "font-size: 14px",
-      "font-family: monospace",
-      "padding: 8px 0",
-    ].join(";");
+    const s = "color:#525252;font-family:monospace;font-size:12px;padding:4px 0";
+    const h = "color:#e5e5e5;font-family:monospace;font-size:13px;padding:4px 0";
 
-    const border = [
-      "color: #555",
-      "font-size: 11px",
-      "font-family: monospace",
-    ].join(";");
-
-    console.log("%c┌─────────────────────────────────────┐", border);
-    console.log("%c  you're looking at the source.", styles);
-    console.log("%c  good. that means you think like me.", styles);
-    console.log("%c  — mvla", styles);
-    console.log("%c└─────────────────────────────────────┘", border);
+    console.log("%c┌────────────────────────────────────────┐", s);
+    console.log("%c│  you're looking at the source.         │", h);
+    console.log("%c│  good. that means you think like me.   │", h);
+    console.log("%c│                                        │", s);
+    console.log("%c│  — mvla                                │", h);
+    console.log("%c└────────────────────────────────────────┘", s);
   }, []);
 
   return null;
