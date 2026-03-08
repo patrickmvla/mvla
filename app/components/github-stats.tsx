@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface Stats {
   totalContributions: number;
@@ -53,8 +54,8 @@ export function GitHubStats() {
       </div>
 
       {/* Contribution graph */}
-      <div className="overflow-x-auto">
-        <div className="flex gap-[3px]">
+      <ScrollArea className="w-full">
+        <div className="flex gap-[3px] pb-3">
           {stats.weeks.map((week, wi) => (
             <div key={wi} className="flex flex-col gap-[3px]">
               {week.map((day) => (
@@ -67,7 +68,8 @@ export function GitHubStats() {
             </div>
           ))}
         </div>
-      </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
     </div>
   );
 }
