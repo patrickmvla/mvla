@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Lightbulb, FolderGit2, Rabbit, Activity } from "lucide-react";
 import { PulseBar } from "./components/pulse-bar";
 import { GitHubStats } from "./components/github-stats";
 
@@ -12,36 +12,39 @@ const links = [
 
 export default function Home() {
   return (
-    <div className="mx-auto flex h-screen max-w-2xl flex-col justify-between p-6 sm:p-10">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col justify-between gap-10 p-6 sm:p-10">
       {/* ── Header ── */}
       <header>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-xl font-medium tracking-tight text-primary">
             patrick mvula
           </h1>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-3 sm:gap-4">
             <Link
               href="/ideas"
-              className="text-sm text-muted-foreground transition-colors hover:text-primary"
+              className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
             >
-              ideas
+              <Lightbulb className="size-3" />
+              <span className="hidden sm:inline">ideas</span>
             </Link>
             <Link
               href="/projects"
-              className="text-sm text-muted-foreground transition-colors hover:text-primary"
+              className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
             >
-              projects
+              <FolderGit2 className="size-3" />
+              <span className="hidden sm:inline">projects</span>
             </Link>
             <Link
               href="/rabbit-holes"
-              className="text-sm text-muted-foreground transition-colors hover:text-primary"
+              className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
             >
-              rabbit holes
+              <Rabbit className="size-3" />
+              <span className="hidden sm:inline">rabbit holes</span>
             </Link>
           </nav>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          software engineer. can&apos;t decide if i should build or read — shipping slop while i figure it out.
+        <p className="mt-2 text-sm text-muted-foreground">
+          software engineer. building or reading — either way, we shipping slop.
         </p>
       </header>
 
@@ -53,8 +56,9 @@ export default function Home() {
         <div>
           <Link
             href="/projects"
-            className="text-[11px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-primary"
+            className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-primary"
           >
+            <FolderGit2 className="size-3" />
             projects
           </Link>
           <div className="mt-3">
@@ -72,7 +76,8 @@ export default function Home() {
 
         {/* GitHub Stats + Graph */}
         <div>
-          <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
+          <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground">
+            <Activity className="size-3" />
             activity
           </span>
           <div className="mt-3">
@@ -84,8 +89,8 @@ export default function Home() {
       </div>
 
       {/* ── Footer ── */}
-      <footer className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
+      <footer className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4 sm:gap-6">
           {links.map((link) => (
             <a
               key={link.label}

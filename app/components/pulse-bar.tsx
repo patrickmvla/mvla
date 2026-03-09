@@ -66,22 +66,15 @@ export function PulseBar() {
       {projects.map((project) => (
         <div
           key={project.name}
-          className="flex items-center gap-3 border-t border-border/50 py-2.5 text-sm"
+          className="flex items-center justify-between border-t border-border/50 py-2.5"
         >
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-primary">{project.name}</span>
-              <span className="text-xs tabular-nums text-muted-foreground">
-                {project.commitsThisWeek > 0
-                  ? `${project.commitsThisWeek} commits`
-                  : "—"}
-              </span>
-            </div>
-            <p className="truncate text-[11px] text-neutral-500 dark:text-neutral-600">
+          <div className="min-w-0">
+            <span className="text-sm text-primary">{project.name}</span>
+            <p className="truncate text-[11px] text-muted-foreground">
               {project.description}
             </p>
           </div>
-          <span className="shrink-0 text-xs text-muted-foreground/70">
+          <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
             {project.lastPush ? timeAgo(project.lastPush) : "—"}
           </span>
         </div>

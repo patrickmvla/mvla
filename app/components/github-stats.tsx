@@ -46,7 +46,7 @@ export function GitHubStats() {
   return (
     <div className="space-y-4">
       {/* Stats row */}
-      <div className="flex gap-8">
+      <div className="flex flex-wrap gap-x-8 gap-y-3">
         <Stat label="this week" value={stats.commitsThisWeek} />
         <Stat label="streak" value={`${stats.streak}d`} />
         <Stat label="contributions" value={stats.totalContributions} />
