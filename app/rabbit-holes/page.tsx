@@ -1,47 +1,6 @@
 import Link from "next/link";
-
-interface RabbitHole {
-  title: string;
-  description: string;
-  category: "paper" | "repo" | "book" | "talk" | "tool" | "concept";
-  url?: string;
-  repo?: string;
-  status: "queued" | "exploring" | "absorbed";
-  notes?: string;
-}
-
-const holes: RabbitHole[] = [
-  {
-    title: "database internals",
-    description: "alex petrov — deep dive into storage engines, B-trees, LSM-trees, distributed systems primitives. understanding databases at the metal level.",
-    category: "book",
-    status: "exploring",
-    notes: "starting from the bottom — how data actually hits disk.",
-  },
-  {
-    title: "opencode",
-    description: "terminal-native AI coding agent. reading through the entire codebase to understand how it's architected.",
-    category: "repo",
-    status: "exploring",
-    repo: "https://github.com/anomalyco/opencode",
-    notes: "obsessed with how they structured this.",
-  },
-];
-
-const statusColor: Record<RabbitHole["status"], string> = {
-  queued: "bg-muted-foreground",
-  exploring: "bg-amber-500",
-  absorbed: "bg-emerald-500",
-};
-
-const categoryLabel: Record<RabbitHole["category"], string> = {
-  paper: "paper",
-  repo: "repo",
-  book: "book",
-  talk: "talk",
-  tool: "tool",
-  concept: "concept",
-};
+import { ArrowUpRight } from "lucide-react";
+import { holes, categoryIcon } from "./data";
 
 export default function RabbitHoles() {
   return (
@@ -58,7 +17,7 @@ export default function RabbitHoles() {
           rabbit holes
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          software, papers, repos, and concepts i&apos;m nerding out on.
+          things i fell into and didn&apos;t come back from.
         </p>
       </header>
 
@@ -70,37 +29,67 @@ export default function RabbitHoles() {
       ) : (
         <div className="flex flex-col">
           {holes.map((hole) => {
-            const inner = (
-              <div className="border-t border-border py-4">
+            const content = (
+              <div className="border-t border-border py-6">
+                {/* Status + category */}
                 <div className="flex items-center gap-3">
-                  <span
-                    className={`inline-block size-1.5 rounded-full ${statusColor[hole.status]}`}
-                  />
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    {categoryIcon[hole.category]}
+                    <span className="text-[10px] uppercase tracking-widest">
+                      {hole.category}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground/30">
+                    /
+                  </span>
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                     {hole.status}
                   </span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground/40">
-                    {categoryLabel[hole.category]}
-                  </span>
                 </div>
-                <h2 className="mt-1.5 text-sm font-medium text-primary">
+
+                {/* Title */}
+                <h2 className="mt-2 flex items-center gap-1.5 text-sm font-medium text-primary">
                   {hole.title}
+                  {(hole.url || hole.repo) && (
+                    <ArrowUpRight className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                  )}
                 </h2>
-                <p className="mt-0.5 text-sm text-muted-foreground">
+
+                {/* Description */}
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                   {hole.description}
                 </p>
+
+                {/* Tags */}
+                {hole.tags.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {hole.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-sm bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Repo link */}
                 {hole.repo && (
                   <a
                     href={hole.repo}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-1.5 inline-block text-[11px] text-muted-foreground/50 transition-colors hover:text-primary"
+                    className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground/80 transition-colors hover:text-primary"
                   >
                     {hole.repo.replace("https://github.com/", "")}
+                    <ArrowUpRight className="size-2.5" />
                   </a>
                 )}
+
+                {/* Notes */}
                 {hole.notes && (
-                  <p className="mt-1.5 text-xs italic text-muted-foreground/60">
+                  <p className="mt-2 text-xs italic text-muted-foreground/70">
                     &quot;{hole.notes}&quot;
                   </p>
                 )}
@@ -113,12 +102,14 @@ export default function RabbitHoles() {
                 href={hole.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition-colors hover:bg-muted/30"
+                className="group transition-colors hover:bg-muted/30"
               >
-                {inner}
+                {content}
               </a>
             ) : (
-              <div key={hole.title}>{inner}</div>
+              <div key={hole.title} className="group">
+                {content}
+              </div>
             );
           })}
         </div>
