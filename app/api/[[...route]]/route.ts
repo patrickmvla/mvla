@@ -88,9 +88,13 @@ app.get("/activity", async (c) => {
       );
       const lastPush = repoPushEvents[0];
 
-      const commitsThisWeek = repoPushEvents
-        .filter((e) => new Date(e.created_at) >= weekAgo)
-        .reduce((sum, e) => sum + (e.payload.commits?.length ?? 0), 0);
+      const recentPushes = repoPushEvents.filter(
+        (e) => new Date(e.created_at) >= weekAgo
+      );
+      const commitsThisWeek = recentPushes.reduce(
+        (sum, e) => sum + Math.max(e.payload.commits?.length ?? 0, 1),
+        0
+      );
 
       const rm = repoMeta[name];
 
