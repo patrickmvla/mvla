@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Star, CircleDot } from "lucide-react";
+import { ArrowUpRight, Star, CircleDot, FileCode, FileJson, Terminal, Cog, Code } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 interface Project {
   name: string;
@@ -19,27 +20,12 @@ interface Project {
   createdAt: string | null;
 }
 
-function timeAgo(date: string): string {
-  const seconds = Math.floor(
-    (Date.now() - new Date(date).getTime()) / 1000
-  );
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  return `${months}mo ago`;
-}
-
-const langColor: Record<string, string> = {
-  TypeScript: "bg-blue-400",
-  JavaScript: "bg-yellow-400",
-  Python: "bg-green-400",
-  Rust: "bg-orange-400",
-  Go: "bg-cyan-400",
+const langIcon: Record<string, React.ReactNode> = {
+  TypeScript: <FileCode className="size-3" />,
+  JavaScript: <FileJson className="size-3" />,
+  Python: <Terminal className="size-3" />,
+  Rust: <Cog className="size-3" />,
+  Go: <Code className="size-3" />,
 };
 
 export default function Projects() {
@@ -95,34 +81,39 @@ export default function Projects() {
               href={project.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="group border-t border-border py-4 transition-colors hover:bg-muted/20"
+              className="group border-t border-border py-6 transition-colors hover:bg-muted/20"
             >
-              {/* Top row: name + status */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-primary">
-                    - {project.name}
-                  </span>
-                  <ArrowUpRight className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                </div>
+              {/* Status + language */}
+              <div className="flex items-center gap-3">
+                {project.language && (
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    {langIcon[project.language] ?? <Code className="size-3" />}
+                    <span className="text-[10px] uppercase tracking-widest">
+                      {project.language}
+                    </span>
+                  </div>
+                )}
+                <span className="text-[10px] text-muted-foreground/30">
+                  /
+                </span>
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                   {project.status}
                 </span>
               </div>
 
+              {/* Title */}
+              <h2 className="mt-2 flex items-center gap-1.5 text-sm font-medium text-primary">
+                {project.name}
+                <ArrowUpRight className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+              </h2>
+
               {/* Description */}
-              <p className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-600">
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                 {project.description}
               </p>
 
               {/* Metadata row */}
-              <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground/70">
-                {project.language && (
-                  <span className="flex items-center gap-1">
-                    <span className={`size-2 rounded-full ${langColor[project.language] ?? "bg-muted-foreground"}`} />
-                    {project.language}
-                  </span>
-                )}
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1 tabular-nums">
                   <Star className="size-3" />
                   {project.stars}
@@ -140,14 +131,14 @@ export default function Projects() {
                 </span>
                 <span>
                   {project.lastPush
-                    ? `pushed ${timeAgo(project.lastPush)}`
+                    ? `pushed ${formatDistanceToNow(new Date(project.lastPush), { addSuffix: true })}`
                     : "no recent pushes"}
                 </span>
               </div>
 
               {/* Last commit message */}
               {project.lastCommit && (
-                <p className="mt-2 truncate font-mono text-xs text-muted-foreground/50">
+                <p className="mt-2 truncate font-mono text-xs text-muted-foreground/70">
                   &quot;{project.lastCommit}&quot;
                 </p>
               )}
