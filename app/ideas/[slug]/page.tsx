@@ -2,21 +2,41 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
-import { ideas, stageColor, stageIcon, complexityLabel } from "../data";
-import { IdeaFooter } from "./footer";
+import { db } from "@/lib/db";
+import { ideas as ideasTable, inspirationLinks } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import {
+  stageColor,
+  stageIcon,
+  complexityLabel,
+  type IdeaStage,
+  type IdeaComplexity,
+} from "@/features/ideas/data";
+import { PlateContent } from "@/features/shared/components/plate-content";
+import { IdeaFooter } from "@/features/ideas/components/idea-footer";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
+
+function parseTags(tags: unknown): string[] {
+  if (Array.isArray(tags)) return tags;
+  if (typeof tags === "string") {
+    try { return JSON.parse(tags); } catch { return []; }
+  }
+  return [];
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  return ideas.map((idea) => ({ slug: idea.slug }));
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const idea = ideas.find((i) => i.slug === slug);
+  const [idea] = await db
+    .select()
+    .from(ideasTable)
+    .where(eq(ideasTable.slug, slug));
+
   if (!idea) return {};
 
   return {
@@ -25,12 +45,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-
 export default async function IdeaPage({ params }: PageProps) {
   const { slug } = await params;
-  const idea = ideas.find((i) => i.slug === slug);
+  const [idea] = await db
+    .select()
+    .from(ideasTable)
+    .where(eq(ideasTable.slug, slug));
 
-  if (!idea) notFound();
+  if (!idea || !idea.published) notFound();
+
+  const links = await db
+    .select()
+    .from(inspirationLinks)
+    .where(eq(inspirationLinks.ideaId, idea.id));
+
+  const stage = idea.stage as IdeaStage;
+  const complexity = idea.complexity as IdeaComplexity;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col p-6 sm:p-10">
@@ -45,15 +75,15 @@ export default async function IdeaPage({ params }: PageProps) {
 
         {/* Stage + complexity */}
         <div className="mt-4 flex items-center gap-3">
-          <div className={`flex items-center gap-1.5 ${stageColor[idea.stage]}`}>
-            {stageIcon[idea.stage]}
+          <div className={`flex items-center gap-1.5 ${stageColor[stage]}`}>
+            {stageIcon[stage]}
             <span className="text-[10px] uppercase tracking-widest">
-              {idea.stage}
+              {stage}
             </span>
           </div>
           <span className="text-[10px] text-muted-foreground/50">/</span>
           <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            {complexityLabel[idea.complexity]}
+            {complexityLabel[complexity]}
           </span>
         </div>
 
@@ -72,7 +102,7 @@ export default async function IdeaPage({ params }: PageProps) {
           <span className="rounded-sm border border-border bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">
             {idea.category}
           </span>
-          {idea.tags.map((tag) => (
+          {parseTags(idea.tags).map((tag) => (
             <span
               key={tag}
               className="rounded-sm bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground"
@@ -89,13 +119,13 @@ export default async function IdeaPage({ params }: PageProps) {
         </div>
 
         {/* Inspiration links */}
-        {idea.inspirationLinks.length > 0 && (
+        {links.length > 0 && (
           <div className="mt-4 flex flex-col gap-1.5">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
               inspiration
             </span>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-              {idea.inspirationLinks.map((link) => (
+              {links.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
@@ -116,9 +146,14 @@ export default async function IdeaPage({ params }: PageProps) {
       <div className="border-t border-border" />
 
       {/* Full content */}
-      <div className="pt-8">{idea.content}</div>
+      <div className="pt-8">
+        <PlateContent
+          content={idea.content}
+          className="text-sm leading-relaxed text-muted-foreground [&_strong]:text-primary/70 [&_em]:text-primary/60"
+        />
+      </div>
 
-      <IdeaFooter idea={idea} />
+      <IdeaFooter slug={idea.slug} stage={stage} />
     </div>
   );
 }

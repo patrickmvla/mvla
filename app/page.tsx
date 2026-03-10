@@ -1,8 +1,8 @@
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { ArrowUpRight, Lightbulb, FolderGit2, Rabbit, Activity } from "lucide-react";
-import { PulseBar } from "./components/pulse-bar";
-import { GitHubStats } from "./components/github-stats";
+import { PulseBar } from "@/features/github/components/pulse-bar";
+import { GitHubStats } from "@/features/github/components/github-stats";
 
 const links = [
   { label: "github", href: "https://github.com/patrickmvla" },

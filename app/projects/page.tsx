@@ -1,24 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Star, CircleDot, FileCode, FileJson, Terminal, Cog, Code } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-
-interface Project {
-  name: string;
-  description: string;
-  href: string;
-  status: "active" | "shipped";
-  lastPush: string | null;
-  lastCommit: string | null;
-  commitsThisWeek: number;
-  stars: number;
-  forks: number;
-  language: string | null;
-  openIssues: number;
-  createdAt: string | null;
-}
+import { useActivity } from "@/features/github/hooks";
 
 const langIcon: Record<string, React.ReactNode> = {
   TypeScript: <FileCode className="size-3" />,
@@ -29,24 +14,8 @@ const langIcon: Record<string, React.ReactNode> = {
 };
 
 export default function Projects() {
-  const [projects, setProjects] = useState<Project[] | null>(null);
-
-  useEffect(() => {
-    async function fetchActivity() {
-      try {
-        const res = await fetch("/api/activity");
-        if (!res.ok) return;
-        const data = await res.json();
-        setProjects(data.projects);
-      } catch {
-        // silent fail
-      }
-    }
-
-    fetchActivity();
-    const interval = setInterval(fetchActivity, 60_000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data } = useActivity();
+  const projects = data?.projects ?? null;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col p-6 sm:p-10">

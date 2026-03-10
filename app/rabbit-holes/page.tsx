@@ -1,8 +1,49 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { holes, categoryIcon } from "./data";
+import { db } from "@/lib/db";
+import { rabbitHoles as rabbitHolesTable } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { format } from "date-fns";
+import {
+  categoryIcon,
+  type RabbitHoleCategory,
+} from "@/features/rabbit-holes/data";
+import { PlateContent } from "@/features/shared/components/plate-content";
 
-export default function RabbitHoles() {
+export const dynamic = "force-dynamic";
+
+function parseTags(tags: unknown): string[] {
+  if (Array.isArray(tags)) return tags;
+  if (typeof tags === "string") {
+    try { return JSON.parse(tags); } catch { return []; }
+  }
+  return [];
+}
+
+function splitNotes(notes: string): { embeds: string | null; text: string | null } {
+  try {
+    const parsed = JSON.parse(notes);
+    if (!Array.isArray(parsed)) return { embeds: null, text: notes };
+
+    const embedNodes = parsed.filter((n: { type?: string }) => n.type === "media_embed");
+    const textNodes = parsed.filter((n: { type?: string }) => n.type !== "media_embed");
+
+    return {
+      embeds: embedNodes.length > 0 ? JSON.stringify(embedNodes) : null,
+      text: textNodes.length > 0 ? JSON.stringify(textNodes) : null,
+    };
+  } catch {
+    return { embeds: null, text: notes };
+  }
+}
+
+export default async function RabbitHoles() {
+  const holes = await db
+    .select()
+    .from(rabbitHolesTable)
+    .where(eq(rabbitHolesTable.published, true))
+    .orderBy(desc(rabbitHolesTable.dateAdded), desc(rabbitHolesTable.id));
+
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col p-6 sm:p-10">
       {/* Header */}
@@ -29,14 +70,17 @@ export default function RabbitHoles() {
       ) : (
         <div className="flex flex-col">
           {holes.map((hole) => {
+            const category = hole.category as RabbitHoleCategory;
+            const { embeds, text: textNotes } = splitNotes(hole.notes);
+
             const content = (
               <div className="border-t border-border py-6">
                 {/* Status + category */}
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5 text-muted-foreground">
-                    {categoryIcon[hole.category]}
+                    {categoryIcon[category]}
                     <span className="text-[10px] uppercase tracking-widest">
-                      {hole.category}
+                      {category}
                     </span>
                   </div>
                   <span className="text-[10px] text-muted-foreground/30">
@@ -44,6 +88,12 @@ export default function RabbitHoles() {
                   </span>
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                     {hole.status}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground/30">
+                    /
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {format(new Date(hole.dateAdded), "MMM d, yyyy")}
                   </span>
                 </div>
 
@@ -61,9 +111,9 @@ export default function RabbitHoles() {
                 </p>
 
                 {/* Tags */}
-                {hole.tags.length > 0 && (
+                {parseTags(hole.tags).length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {hole.tags.map((tag) => (
+                    {parseTags(hole.tags).map((tag) => (
                       <span
                         key={tag}
                         className="rounded-sm bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground"
@@ -72,6 +122,36 @@ export default function RabbitHoles() {
                       </span>
                     ))}
                   </div>
+                )}
+
+                {/* Embeds (YouTube etc.) */}
+                {embeds && (
+                  <div className="mt-3 max-w-sm">
+                    <PlateContent content={embeds} />
+                  </div>
+                )}
+
+                {/* Notes */}
+                {textNotes && (
+                  <div className="mt-3">
+                    <PlateContent
+                      content={textNotes}
+                      className="text-xs text-muted-foreground/70"
+                    />
+                  </div>
+                )}
+
+                {/* Link */}
+                {hole.url && (
+                  <Link
+                    href={hole.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground/80 transition-colors hover:text-primary"
+                  >
+                    {hole.url.replace(/^https?:\/\/(www\.)?/, "")}
+                    <ArrowUpRight className="size-2.5" />
+                  </Link>
                 )}
 
                 {/* Repo link */}
@@ -86,28 +166,11 @@ export default function RabbitHoles() {
                     <ArrowUpRight className="size-2.5" />
                   </a>
                 )}
-
-                {/* Notes */}
-                {hole.notes && (
-                  <p className="mt-2 text-xs italic text-muted-foreground/70">
-                    &quot;{hole.notes}&quot;
-                  </p>
-                )}
               </div>
             );
 
-            return hole.url ? (
-              <a
-                key={hole.title}
-                href={hole.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group transition-colors hover:bg-muted/30"
-              >
-                {content}
-              </a>
-            ) : (
-              <div key={hole.title} className="group">
+            return (
+              <div key={hole.id} className="group">
                 {content}
               </div>
             );

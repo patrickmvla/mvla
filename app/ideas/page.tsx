@@ -1,10 +1,45 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
-import { ideas, stageColor, stageIcon, complexityLabel } from "./data";
-import { InspirationLinks } from "./inspiration-links";
+import { db } from "@/lib/db";
+import { ideas as ideasTable, inspirationLinks } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import {
+  stageColor,
+  stageIcon,
+  complexityLabel,
+  type IdeaStage,
+  type IdeaComplexity,
+} from "@/features/ideas/data";
+import { InspirationLinks } from "@/features/ideas/components/inspiration-links";
 
-export default function Ideas() {
+export const dynamic = "force-dynamic";
+
+function parseTags(tags: unknown): string[] {
+  if (Array.isArray(tags)) return tags;
+  if (typeof tags === "string") {
+    try { return JSON.parse(tags); } catch { return []; }
+  }
+  return [];
+}
+
+export default async function Ideas() {
+  const rows = await db
+    .select()
+    .from(ideasTable)
+    .where(eq(ideasTable.published, true));
+
+  const allLinks = rows.length > 0
+    ? await db.select().from(inspirationLinks)
+    : [];
+
+  const ideas = rows.map((idea) => ({
+    ...idea,
+    stage: idea.stage as IdeaStage,
+    complexity: idea.complexity as IdeaComplexity,
+    links: allLinks.filter((l) => l.ideaId === idea.id),
+  }));
+
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col p-6 sm:p-10">
       {/* Header */}
@@ -72,7 +107,7 @@ export default function Ideas() {
                 <span className="rounded-sm border border-border bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">
                   {idea.category}
                 </span>
-                {idea.tags.map((tag) => (
+                {parseTags(idea.tags).map((tag) => (
                   <span
                     key={tag}
                     className="rounded-sm bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground"
@@ -89,8 +124,8 @@ export default function Ideas() {
               </div>
 
               {/* Inspiration links */}
-              {idea.inspirationLinks.length > 0 && (
-                <InspirationLinks links={idea.inspirationLinks} />
+              {idea.links.length > 0 && (
+                <InspirationLinks links={idea.links} />
               )}
 
               {/* Read more */}

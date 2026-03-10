@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { EasterEgg } from "./components/easter-egg";
+import { EasterEgg } from "@/components/easter-egg";
+import { Providers } from "@/components/providers";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -22,7 +23,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${jetbrainsMono.variable} font-mono antialiased bg-black text-[#a1a1a1]`}>
         <EasterEgg />
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
