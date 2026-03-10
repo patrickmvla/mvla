@@ -1,0 +1,1 @@
+ALTER TABLE `rabbit_holes` ADD `date_added` text DEFAULT '2025-01-01' NOT NULL;
